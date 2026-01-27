@@ -36,7 +36,7 @@ class ProductionConfig(Config):
     SQLALCHEMY_ECHO = False
 
     # Override with PythonAnywhere database path
-    BASE_DIR = '/home/yourusername/abdelhamed'
+    BASE_DIR = '/home/shalabifinance/shalabiverse-finance'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'instance', 'shalabi_verse.db')
 
 config = {
