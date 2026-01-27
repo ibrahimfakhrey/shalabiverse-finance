@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}إضافة دخل - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>إضافة دخل جديد</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">الحساب *</label>
+                <select name="account_id" class="form-select" required>
+                    <option value="">اختر الحساب</option>
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الفئة *</label>
+                <select name="category_id" class="form-select" required>
+                    <option value="">اختر الفئة</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name_ar }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">المبلغ *</label>
+                <input type="number" name="amount" class="form-control" step="0.01" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">التاريخ *</label>
+                <input type="date" name="transaction_date" class="form-control" value="{{ today }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ملاحظات</label>
+                <textarea name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">حفظ</button>
+            <a href="{{ url_for('income.list_income') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}تعديل دين - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>تعديل دين: {{ debt.person_name }}</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">اسم الشخص</label>
+                <input type="text" name="person_name" class="form-control" value="{{ debt.person_name }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">تاريخ الاستحقاق</label>
+                <input type="date" name="due_date" class="form-control" value="{{ debt.due_date if debt.due_date else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ملاحظات</label>
+                <textarea name="notes" class="form-control" rows="3">{{ debt.notes or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-warning">حفظ</button>
+            <a href="{{ url_for('debts.list_debts') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

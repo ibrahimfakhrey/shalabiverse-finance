@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}تعديل حساب - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>تعديل حساب: {{ account.name }}</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">اسم الحساب</label>
+                <input type="text" name="name" class="form-control" value="{{ account.name }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">نوع الحساب</label>
+                <select name="account_type_id" class="form-select" required>
+                    {% for type in account_types %}
+                        <option value="{{ type.id }}" {% if type.id == account.account_type_id %}selected{% endif %}>{{ type.name_ar }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ</button>
+            <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

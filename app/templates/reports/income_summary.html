@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}ملخص الدخل - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2><i class="bi bi-bar-chart"></i> ملخص الدخل حسب الفئة</h2>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>الفترة:</strong> {{ start_date|date_ar }} - {{ end_date|date_ar }}</p>
+        <p><strong>إجمالي الدخل:</strong> {{ total_income|currency }}</p>
+        <hr>
+        {% if income_by_category %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>الفئة</th>
+                    <th>المبلغ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category, total in income_by_category %}
+                <tr>
+                    <td>{{ category }}</td>
+                    <td><strong>{{ total|currency }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">لا توجد بيانات</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

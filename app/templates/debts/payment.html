@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل دفعة - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>تسجيل دفعة لدين: {{ debt.person_name }}</h2>
+
+<div class="alert alert-info">
+    <p><strong>المبلغ الأصلي:</strong> {{ debt.original_amount|currency }}</p>
+    <p><strong>المبلغ المتبقي:</strong> {{ debt.remaining_amount|currency }}</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">المبلغ المدفوع *</label>
+                <input type="number" name="amount" class="form-control" step="0.01" max="{{ debt.remaining_amount }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">تاريخ الدفع *</label>
+                <input type="date" name="payment_date" class="form-control" value="{{ today }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الحساب</label>
+                <select name="account_id" class="form-select">
+                    <option value="">لا يوجد</option>
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ملاحظات</label>
+                <textarea name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">تسجيل الدفعة</button>
+            <a href="{{ url_for('debts.list_debts') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

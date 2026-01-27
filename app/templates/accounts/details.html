@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}تفاصيل الحساب - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>تفاصيل الحساب: {{ account.name }}</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <p><strong>النوع:</strong> {{ account.account_type.name_ar }}</p>
+        <p><strong>الرصيد الافتتاحي:</strong> {{ account.initial_balance|currency }}</p>
+        <p><strong>الرصيد الحالي:</strong> {{ account.current_balance|currency }}</p>
+    </div>
+</div>
+
+<a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-secondary">رجوع</a>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}الديون - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="bi bi-journal-text"></i> الديون</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('debts.add_debt') }}" class="btn btn-warning">
+            <i class="bi bi-plus-circle"></i> إضافة دين
+        </a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>ديون لينا (مستحقة لنا)</h5>
+                <h3>{{ total_owed_to_us|currency }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5>ديون علينا (مستحقة علينا)</h5>
+                <h3>{{ total_owed_by_us|currency }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if debts %}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>النوع</th>
+                    <th>المبلغ الأصلي</th>
+                    <th>المتبقي</th>
+                    <th>الاستحقاق</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for debt in debts %}
+                <tr>
+                    <td>{{ debt.person_name }}</td>
+                    <td>
+                        {% if debt.debt_type == 'owed_to_us' %}
+                            <span class="badge bg-success">لينا</span>
+                        {% else %}
+                            <span class="badge bg-danger">علينا</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ debt.original_amount|currency }}</td>
+                    <td>{{ debt.remaining_amount|currency }}</td>
+                    <td>{{ debt.due_date|date_ar if debt.due_date else '-' }}</td>
+                    <td>
+                        {% if debt.is_paid %}
+                            <span class="badge bg-success">مسدد</span>
+                        {% elif debt.payment_status == 'partial' %}
+                            <span class="badge bg-warning">جزئي</span>
+                        {% else %}
+                            <span class="badge bg-danger">غير مسدد</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not debt.is_paid %}
+                        <a href="{{ url_for('debts.record_payment', id=debt.id) }}" class="btn btn-sm btn-info">دفع</a>
+                        {% endif %}
+                        <a href="{{ url_for('debts.edit_debt', id=debt.id) }}" class="btn btn-sm btn-warning">تعديل</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center text-muted">لا توجد ديون</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

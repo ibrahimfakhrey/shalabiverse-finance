@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}تعديل موظف - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>تعديل بيانات: {{ employee.name }}</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">الاسم</label>
+                <input type="text" name="name" class="form-control" value="{{ employee.name }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الراتب الأساسي</label>
+                <input type="number" name="base_salary" class="form-control" step="0.01" value="{{ employee.base_salary }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">تاريخ التعيين</label>
+                <input type="date" name="hire_date" class="form-control" value="{{ employee.hire_date if employee.hire_date else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ملاحظات</label>
+                <textarea name="notes" class="form-control" rows="3">{{ employee.notes or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ</button>
+            <a href="{{ url_for('employees.list_employees') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

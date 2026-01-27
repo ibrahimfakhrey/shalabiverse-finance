@@ -1,0 +1,87 @@
+/* Custom Styles for Shalabi Verse Financial System */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* RTL Specific Adjustments */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Card Enhancements */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Table Improvements */
+.table {
+    background-color: white;
+}
+
+/* Metric Cards on Dashboard */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-danger,
+.card.bg-info,
+.card.bg-warning {
+    transition: transform 0.2s;
+}
+
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-danger:hover,
+.card.bg-info:hover,
+.card.bg-warning:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Button Spacing */
+.btn {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: 8px;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 15px;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* Number formatting for Arabic */
+.currency {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Status badges */
+.badge {
+    font-size: 0.9rem;
+    padding: 0.4em 0.8em;
+}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}دفع راتب - شلبي فيرس{% endblock %}
+
+{% block content %}
+<h2>دفع راتب: {{ employee.name }}</h2>
+
+<div class="alert alert-info">
+    <p><strong>الراتب الأساسي:</strong> {{ employee.base_salary|currency }}</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">الراتب الأساسي *</label>
+                <input type="number" name="base_salary" class="form-control" step="0.01" value="{{ employee.base_salary }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الخصومات</label>
+                <input type="number" name="deductions" class="form-control" step="0.01" value="0.00">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">المكافآت</label>
+                <input type="number" name="bonus" class="form-control" step="0.01" value="0.00">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">العمولات</label>
+                <input type="number" name="commission" class="form-control" step="0.01" value="0.00">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الحساب *</label>
+                <select name="account_id" class="form-select" required>
+                    <option value="">اختر الحساب</option>
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">تاريخ الدفع *</label>
+                <input type="date" name="payment_date" class="form-control" value="{{ today }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ملاحظات</label>
+                <textarea name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">دفع الراتب</button>
+            <a href="{{ url_for('employees.list_employees') }}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

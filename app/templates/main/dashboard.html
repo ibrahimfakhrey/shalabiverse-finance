@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}لوحة التحكم - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-speedometer2"></i> لوحة التحكم
+        </h1>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('main.dashboard') }}" class="row g-3">
+                    <!-- Period Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">الفترة الزمنية</label>
+                        <select name="period" class="form-select" id="periodSelect">
+                            <option value="today" {% if selected_period == 'today' %}selected{% endif %}>اليوم</option>
+                            <option value="week" {% if selected_period == 'week' %}selected{% endif %}>الأسبوع</option>
+                            <option value="month" {% if selected_period == 'month' %}selected{% endif %}>الشهر</option>
+                            <option value="year" {% if selected_period == 'year' %}selected{% endif %}>السنة</option>
+                            <option value="custom" {% if selected_period == 'custom' %}selected{% endif %}>مخصص</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Date Range (shown only when custom is selected) -->
+                    <div class="col-md-3" id="customDateRange" style="display: none;">
+                        <label class="form-label">من تاريخ</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-3" id="customDateRangeEnd" style="display: none;">
+                        <label class="form-label">إلى تاريخ</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                    </div>
+
+                    <!-- Account Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">الحساب</label>
+                        <select name="account_id" class="form-select">
+                            <option value="">كل الحسابات</option>
+                            {% for account in accounts %}
+                                <option value="{{ account.id }}" {% if selected_account == account.id %}selected{% endif %}>
+                                    {{ account.name }} ({{ account.account_type.name_ar }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> تطبيق
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="row mb-4">
+    <!-- Total Balance -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-wallet2"></i> الرصيد الحالي
+                </h5>
+                <h2 class="display-5">{{ total_balance|currency }}</h2>
+                <p class="card-text">مجموع رصيد الحسابات</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Income -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-arrow-down-circle"></i> الدخل
+                </h5>
+                <h2 class="display-5">{{ total_income|currency }}</h2>
+                <p class="card-text">{{ start_date|date_ar }} - {{ end_date|date_ar }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Expenses -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-arrow-up-circle"></i> المصروفات
+                </h5>
+                <h2 class="display-5">{{ total_expenses|currency }}</h2>
+                <p class="card-text">{{ start_date|date_ar }} - {{ end_date|date_ar }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profit/Loss -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white {% if profit_loss >= 0 %}bg-info{% else %}bg-warning{% endif %}">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-graph-up-arrow"></i> الربح
+                </h5>
+                <h2 class="display-5">{{ profit_loss|currency }}</h2>
+                <p class="card-text">
+                    {% if profit_loss >= 0 %}
+                        ربح
+                    {% else %}
+                        خسارة
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Debt Notifications -->
+{% if upcoming_debts %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning" role="alert">
+            <h5 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i> تنبيه الديون
+            </h5>
+            <p>لديك ديون قريبة من موعد الاستحقاق:</p>
+            <ul class="mb-0">
+                {% for debt in upcoming_debts %}
+                    <li>
+                        <strong>{{ debt.person_name }}</strong>:
+                        {{ debt.remaining_amount|currency }} -
+                        تاريخ الاستحقاق: {{ debt.due_date|date_ar }}
+                        ({{ (debt.due_date - today).days }} يوم)
+                    </li>
+                {% endfor %}
+            </ul>
+            <hr>
+            <a href="{{ url_for('debts.list_debts') }}" class="btn btn-warning">
+                عرض كل الديون
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <h3>إجراءات سريعة</h3>
+        <div class="btn-group mb-3" role="group">
+            <a href="{{ url_for('income.add_income') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> إضافة دخل
+            </a>
+            <a href="{{ url_for('expenses.add_expense') }}" class="btn btn-danger">
+                <i class="bi bi-plus-circle"></i> إضافة مصروف
+            </a>
+            <a href="{{ url_for('debts.add_debt') }}" class="btn btn-warning">
+                <i class="bi bi-plus-circle"></i> إضافة دين
+            </a>
+            <a href="{{ url_for('accounts.add_account') }}" class="btn btn-info">
+                <i class="bi bi-plus-circle"></i> إضافة حساب
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
