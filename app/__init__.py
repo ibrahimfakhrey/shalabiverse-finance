@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_migrate import Migrate
 from app.models import db
@@ -11,6 +12,14 @@ def create_app(config_name='default'):
     """Application factory pattern"""
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+
+    # Ensure instance directory exists
+    if config_name == 'production':
+        instance_path = os.path.join(
+            app.config.get('BASE_DIR', os.path.dirname(os.path.dirname(__file__))),
+            'instance'
+        )
+        os.makedirs(instance_path, exist_ok=True)
 
     # Initialize extensions
     db.init_app(app)
