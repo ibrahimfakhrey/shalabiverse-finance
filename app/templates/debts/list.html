@@ -76,6 +76,9 @@
                         <a href="{{ url_for('debts.record_payment', id=debt.id) }}" class="btn btn-sm btn-info">دفع</a>
                         {% endif %}
                         <a href="{{ url_for('debts.edit_debt', id=debt.id) }}" class="btn btn-sm btn-warning">تعديل</a>
+                        <form method="POST" action="{{ url_for('debts.delete_debt', id=debt.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger btn-delete">حذف</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
