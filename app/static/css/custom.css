@@ -47,6 +47,29 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Fix select dropdown rendering */
+.form-select {
+    height: auto;
+    min-height: 38px;
+    max-height: 38px;
+    overflow: hidden;
+    background-color: #fff;
+    background-position: left 0.75rem center;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
+
+select.form-select {
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+}
+
+/* Ensure select options don't show by default */
+.form-select option {
+    background-color: #fff;
+    color: #000;
+}
+
 /* Button Spacing */
 .btn {
     margin-left: 5px;
