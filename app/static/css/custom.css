@@ -49,25 +49,28 @@ body {
 
 /* Fix select dropdown rendering */
 .form-select {
-    height: auto;
-    min-height: 38px;
-    max-height: 38px;
-    overflow: hidden;
+    height: 38px !important;
     background-color: #fff;
     background-position: left 0.75rem center;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
 }
 
 select.form-select {
-    appearance: auto;
-    -webkit-appearance: menulist;
-    -moz-appearance: menulist;
+    -webkit-appearance: menulist-button !important;
+    -moz-appearance: menulist-button !important;
+    appearance: menulist-button !important;
 }
 
-/* Ensure select options don't show by default */
-.form-select option {
-    background-color: #fff;
-    color: #000;
+/* Force select to never show multiple options at once */
+select[multiple] {
+    height: auto !important;
+}
+
+/* Ensure select doesn't have size attribute styling */
+select:not([multiple]):not([size]) {
+    height: 38px !important;
 }
 
 /* Button Spacing */
