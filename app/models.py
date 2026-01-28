@@ -4,6 +4,25 @@ from sqlalchemy import func
 
 db = SQLAlchemy()
 
+
+class Project(db.Model):
+    __tablename__ = 'projects'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name_ar = db.Column(db.String(200), nullable=False)
+    name_en = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    accounts = db.relationship('Account', backref='project', lazy='dynamic')
+    employees = db.relationship('Employee', backref='project', lazy='dynamic')
+    debts = db.relationship('Debt', backref='project', lazy='dynamic')
+    income_transactions = db.relationship('IncomeTransaction', backref='project', lazy='dynamic')
+    expense_transactions = db.relationship('ExpenseTransaction', backref='project', lazy='dynamic')
+
+
 class AccountType(db.Model):
     __tablename__ = 'account_types'
 
@@ -20,6 +39,7 @@ class Account(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     account_type_id = db.Column(db.Integer, db.ForeignKey('account_types.id'), nullable=False)
     initial_balance = db.Column(db.Numeric(15, 2), default=0.00)
     current_balance = db.Column(db.Numeric(15, 2), default=0.00)
@@ -71,6 +91,7 @@ class IncomeTransaction(db.Model):
     __tablename__ = 'income_transactions'
 
     id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('income_categories.id'), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
@@ -84,6 +105,7 @@ class ExpenseTransaction(db.Model):
     __tablename__ = 'expense_transactions'
 
     id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
@@ -99,6 +121,7 @@ class Employee(db.Model):
     __tablename__ = 'employees'
 
     id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     base_salary = db.Column(db.Numeric(15, 2), nullable=False, default=0.00)
     hire_date = db.Column(db.Date)
@@ -138,6 +161,7 @@ class Debt(db.Model):
     __tablename__ = 'debts'
 
     id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     debt_type = db.Column(db.String(20), nullable=False)  # 'owed_to_us' or 'owed_by_us'
     person_name = db.Column(db.String(200), nullable=False)
     original_amount = db.Column(db.Numeric(15, 2), nullable=False)
