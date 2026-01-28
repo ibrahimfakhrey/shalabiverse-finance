@@ -1,6 +1,15 @@
 // Main JavaScript for Shalabi Verse Financial System
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Fix select dropdown rendering on desktop browsers
+    const selectElements = document.querySelectorAll('select.form-select, select');
+    selectElements.forEach(function(select) {
+        // Force single selection dropdown behavior unless explicitly multiple
+        if (!select.hasAttribute('multiple')) {
+            select.removeAttribute('size');
+        }
+    });
+
     // Auto-dismiss alerts after 5 seconds
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
