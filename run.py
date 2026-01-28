@@ -10,4 +10,4 @@ if __name__ == '__main__':
     print("Shalabi Verse Financial Management System")
     print("Starting development server...")
     print("="*60 + "\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
