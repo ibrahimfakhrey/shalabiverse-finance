@@ -3,12 +3,27 @@
 {% block title %}لوحة التحكم - شلبي فيرس{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
+<!-- Project Header -->
+<div class="row mb-3">
+    <div class="col-md-8">
         <h1 class="display-4">
             <i class="bi bi-speedometer2"></i> لوحة التحكم
         </h1>
     </div>
+    <div class="col-md-4 text-start">
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-right-circle"></i> تغيير المشروع
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info mb-4" role="alert">
+    <h5 class="mb-0">
+        <i class="bi bi-folder-fill"></i> المشروع الحالي: <strong>{{ project.name_ar }}</strong>
+        {% if project.name_en %}
+            <span class="text-muted">({{ project.name_en }})</span>
+        {% endif %}
+    </h5>
 </div>
 
 <!-- Filters -->
@@ -16,7 +31,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <form method="GET" action="{{ url_for('main.dashboard') }}" class="row g-3">
+                <form method="GET" action="{{ url_for('main.project_dashboard', project_id=project.id) }}" class="row g-3">
                     <!-- Period Filter -->
                     <div class="col-md-3">
                         <label class="form-label">الفترة الزمنية</label>

@@ -33,6 +33,7 @@ def create_app(config_name='default'):
     from app.blueprints.debts import debts_bp
     from app.blueprints.employees import employees_bp
     from app.blueprints.reports import reports_bp
+    from app.blueprints.projects import projects_bp
 
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(income_bp, url_prefix='/income')
@@ -41,11 +42,22 @@ def create_app(config_name='default'):
     app.register_blueprint(debts_bp, url_prefix='/debts')
     app.register_blueprint(employees_bp, url_prefix='/employees')
     app.register_blueprint(reports_bp, url_prefix='/reports')
+    app.register_blueprint(projects_bp, url_prefix='/projects')
 
     # Register template filters
     from app.utils import format_currency, format_date_ar
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.filters['date_ar'] = format_date_ar
+
+    # Register context processors
+    @app.context_processor
+    def inject_project():
+        """Inject current project into all templates"""
+        from flask import session
+        from app.models import Project
+        project_id = session.get('selected_project_id')
+        current_project = Project.query.get(project_id) if project_id else None
+        return {'current_project': current_project}
 
     # Create database tables and initialize default data
     with app.app_context():
@@ -56,12 +68,21 @@ def create_app(config_name='default'):
 
 
 def init_default_data():
-    """Initialize default categories and account types"""
-    from app.models import AccountType, IncomeCategory, ExpenseCategory, SystemSetting
+    """Initialize default categories, account types, and default project"""
+    from app.models import AccountType, IncomeCategory, ExpenseCategory, SystemSetting, Project
 
     # Check if data already exists
     if AccountType.query.first() is not None:
         return
+
+    # Create default project first
+    default_project = Project(
+        name_ar='المشروع الرئيسي',
+        name_en='Main Project',
+        is_active=True
+    )
+    db.session.add(default_project)
+    db.session.flush()  # Flush to get the project ID
 
     # Account Types
     account_types = [

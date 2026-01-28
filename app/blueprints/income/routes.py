@@ -1,15 +1,21 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from app.blueprints.income import income_bp
-from app.models import db, IncomeTransaction, IncomeCategory, Account
+from app.models import db, IncomeTransaction, IncomeCategory, Account, Project
 from datetime import date
 
 
 @income_bp.route('/')
 def list_income():
-    """List all income transactions"""
+    """List all income transactions for the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
     page = request.args.get('page', 1, type=int)
 
     transactions = IncomeTransaction.query\
+        .filter_by(project_id=project_id)\
         .order_by(IncomeTransaction.transaction_date.desc())\
         .paginate(page=page, per_page=20, error_out=False)
 
@@ -18,7 +24,12 @@ def list_income():
 
 @income_bp.route('/add', methods=['GET', 'POST'])
 def add_income():
-    """Add new income transaction"""
+    """Add new income transaction to the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
     if request.method == 'POST':
         account_id = request.form.get('account_id', type=int)
         category_id = request.form.get('category_id', type=int)
@@ -35,7 +46,8 @@ def add_income():
             category_id=category_id,
             amount=amount,
             transaction_date=date.fromisoformat(transaction_date_str),
-            notes=notes
+            notes=notes,
+            project_id=project_id
         )
 
         db.session.add(transaction)
@@ -47,7 +59,10 @@ def add_income():
         flash('تم إضافة الدخل بنجاح', 'success')
         return redirect(url_for('income.list_income'))
 
-    accounts = Account.query.filter_by(is_active=True).all()
+    accounts = Account.query.filter_by(
+        project_id=project_id,
+        is_active=True
+    ).all()
     categories = IncomeCategory.query.filter_by(is_active=True).all()
 
     return render_template('income/add.html',
@@ -58,8 +73,16 @@ def add_income():
 
 @income_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_income(id):
-    """Edit existing income transaction"""
-    transaction = IncomeTransaction.query.get_or_404(id)
+    """Edit existing income transaction in the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    transaction = IncomeTransaction.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
     old_account_id = transaction.account_id
 
     if request.method == 'POST':
@@ -78,7 +101,10 @@ def edit_income(id):
         flash('تم تحديث الدخل بنجاح', 'success')
         return redirect(url_for('income.list_income'))
 
-    accounts = Account.query.filter_by(is_active=True).all()
+    accounts = Account.query.filter_by(
+        project_id=project_id,
+        is_active=True
+    ).all()
     categories = IncomeCategory.query.filter_by(is_active=True).all()
 
     return render_template('income/edit.html',
@@ -89,8 +115,16 @@ def edit_income(id):
 
 @income_bp.route('/delete/<int:id>', methods=['POST'])
 def delete_income(id):
-    """Delete income transaction"""
-    transaction = IncomeTransaction.query.get_or_404(id)
+    """Delete income transaction from the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    transaction = IncomeTransaction.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
     account_id = transaction.account_id
 
     db.session.delete(transaction)

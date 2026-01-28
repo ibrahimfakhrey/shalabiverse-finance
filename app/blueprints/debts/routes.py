@@ -1,16 +1,21 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from app.blueprints.debts import debts_bp
-from app.models import db, Debt, DebtPayment, Account
+from app.models import db, Debt, DebtPayment, Account, Project
 from datetime import date
 
 
 @debts_bp.route('/')
 def list_debts():
-    """List all debts"""
+    """List all debts for the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
     debt_type = request.args.get('type', 'all')
     status = request.args.get('status', 'all')
 
-    query = Debt.query
+    query = Debt.query.filter_by(project_id=project_id)
 
     if debt_type != 'all':
         query = query.filter_by(debt_type=debt_type)
@@ -37,7 +42,12 @@ def list_debts():
 
 @debts_bp.route('/add', methods=['GET', 'POST'])
 def add_debt():
-    """Add new debt"""
+    """Add new debt to the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
     if request.method == 'POST':
         debt_type = request.form.get('debt_type')
         person_name = request.form.get('person_name', '').strip()
@@ -57,7 +67,8 @@ def add_debt():
             original_amount=amount,
             remaining_amount=amount,
             due_date=due_date_val,
-            notes=notes
+            notes=notes,
+            project_id=project_id
         )
 
         db.session.add(debt)
@@ -71,8 +82,16 @@ def add_debt():
 
 @debts_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_debt(id):
-    """Edit existing debt"""
-    debt = Debt.query.get_or_404(id)
+    """Edit existing debt in the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    debt = Debt.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
 
     if request.method == 'POST':
         debt.person_name = request.form.get('person_name', '').strip()
@@ -89,8 +108,16 @@ def edit_debt(id):
 
 @debts_bp.route('/payment/<int:id>', methods=['GET', 'POST'])
 def record_payment(id):
-    """Record debt payment"""
-    debt = Debt.query.get_or_404(id)
+    """Record debt payment for the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    debt = Debt.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
 
     if request.method == 'POST':
         amount = request.form.get('amount', type=float)
@@ -129,7 +156,10 @@ def record_payment(id):
         flash('تم تسجيل الدفعة بنجاح', 'success')
         return redirect(url_for('debts.list_debts'))
 
-    accounts = Account.query.filter_by(is_active=True).all()
+    accounts = Account.query.filter_by(
+        project_id=project_id,
+        is_active=True
+    ).all()
     return render_template('debts/payment.html',
                          debt=debt,
                          accounts=accounts,
@@ -138,8 +168,16 @@ def record_payment(id):
 
 @debts_bp.route('/delete/<int:id>', methods=['POST'])
 def delete_debt(id):
-    """Delete debt"""
-    debt = Debt.query.get_or_404(id)
+    """Delete debt from the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    debt = Debt.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
     db.session.delete(debt)
     db.session.commit()
 

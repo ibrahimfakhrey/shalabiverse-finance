@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}المشاريع - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-folder"></i> المشاريع
+        </h1>
+        <p class="lead">اختر مشروع لعرض تفاصيله المالية</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('projects.add_project') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> إضافة مشروع جديد
+        </a>
+        <a href="{{ url_for('projects.list_projects') }}" class="btn btn-secondary">
+            <i class="bi bi-list"></i> إدارة المشاريع
+        </a>
+    </div>
+</div>
+
+<!-- Project Cards -->
+<div class="row">
+    {% for item in project_data %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm" style="transition: transform 0.2s; cursor: pointer;"
+             onmouseover="this.style.transform='translateY(-5px)'"
+             onmouseout="this.style.transform='translateY(0)'"
+             onclick="window.location='{{ url_for('projects.select_project', id=item.project.id) }}'">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-folder-fill text-primary"></i>
+                    {{ item.project.name_ar }}
+                </h5>
+                {% if item.project.name_en %}
+                <h6 class="card-subtitle mb-3 text-muted">{{ item.project.name_en }}</h6>
+                {% endif %}
+
+                <hr>
+
+                <div class="mb-2">
+                    <strong>الرصيد الحالي:</strong>
+                    <span class="{% if item.summary.total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ item.summary.total_balance|currency }}
+                    </span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>الحسابات:</strong>
+                    <span class="badge bg-info">{{ item.summary.account_count }}</span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>الموظفين:</strong>
+                    <span class="badge bg-success">{{ item.summary.employee_count }}</span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>الديون لنا:</strong>
+                    <span class="text-success">{{ item.summary.debts_to_us|currency }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <strong>الديون علينا:</strong>
+                    <span class="text-danger">{{ item.summary.debts_by_us|currency }}</span>
+                </div>
+
+                <a href="{{ url_for('projects.select_project', id=item.project.id) }}"
+                   class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-left-circle"></i> عرض التفاصيل
+                </a>
+            </div>
+            <div class="card-footer text-muted">
+                <small>
+                    <i class="bi bi-calendar"></i>
+                    تم الإنشاء: {{ item.project.created_at|date_ar }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not project_data %}
+<div class="alert alert-info">
+    <h5><i class="bi bi-info-circle"></i> لا توجد مشاريع</h5>
+    <p>لم تقم بإنشاء أي مشروع بعد. ابدأ بإضافة مشروعك الأول!</p>
+    <a href="{{ url_for('projects.add_project') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> إضافة مشروع
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

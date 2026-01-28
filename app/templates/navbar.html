@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
             <i class="bi bi-calculator"></i> شلبي فيرس
         </a>
 
@@ -10,11 +10,34 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
+                {% if current_project %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-folder-fill"></i> {{ current_project.name_ar }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-arrow-left-right"></i> تغيير المشروع
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('projects.list_projects') }}">
+                            <i class="bi bi-list"></i> إدارة المشاريع
+                        </a></li>
+                    </ul>
+                </li>
+
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                    <a class="nav-link" href="{{ url_for('main.project_dashboard', project_id=current_project.id) }}">
                         <i class="bi bi-speedometer2"></i> لوحة التحكم
                     </a>
                 </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">
+                        <i class="bi bi-folder"></i> المشاريع
+                    </a>
+                </li>
+                {% endif %}
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

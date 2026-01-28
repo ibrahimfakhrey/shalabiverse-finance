@@ -1,19 +1,32 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from app.blueprints.employees import employees_bp
-from app.models import db, Employee, SalaryPayment, ExpenseTransaction, ExpenseCategory, Account
+from app.models import db, Employee, SalaryPayment, ExpenseTransaction, ExpenseCategory, Account, Project
 from datetime import date
 
 
 @employees_bp.route('/')
 def list_employees():
-    """List all employees"""
-    employees = Employee.query.filter_by(is_active=True).all()
+    """List all employees for the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    employees = Employee.query.filter_by(
+        project_id=project_id,
+        is_active=True
+    ).all()
     return render_template('employees/list.html', employees=employees)
 
 
 @employees_bp.route('/add', methods=['GET', 'POST'])
 def add_employee():
-    """Add new employee"""
+    """Add new employee to the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         base_salary = request.form.get('base_salary', type=float)
@@ -30,7 +43,8 @@ def add_employee():
             name=name,
             base_salary=base_salary,
             hire_date=hire_date_val,
-            notes=notes
+            notes=notes,
+            project_id=project_id
         )
 
         db.session.add(employee)
@@ -44,8 +58,16 @@ def add_employee():
 
 @employees_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_employee(id):
-    """Edit existing employee"""
-    employee = Employee.query.get_or_404(id)
+    """Edit existing employee in the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    employee = Employee.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
 
     if request.method == 'POST':
         employee.name = request.form.get('name', '').strip()
@@ -63,8 +85,16 @@ def edit_employee(id):
 
 @employees_bp.route('/delete/<int:id>', methods=['POST'])
 def delete_employee(id):
-    """Deactivate employee"""
-    employee = Employee.query.get_or_404(id)
+    """Deactivate employee in the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    employee = Employee.query.filter_by(
+        id=id,
+        project_id=project_id
+    ).first_or_404()
     employee.is_active = False
     db.session.commit()
 
@@ -74,8 +104,16 @@ def delete_employee(id):
 
 @employees_bp.route('/salary-payment/<int:employee_id>', methods=['GET', 'POST'])
 def salary_payment(employee_id):
-    """Record salary payment for employee"""
-    employee = Employee.query.get_or_404(employee_id)
+    """Record salary payment for employee in the selected project"""
+    project_id = session.get('selected_project_id')
+    if not project_id:
+        flash('يرجى اختيار مشروع أولاً', 'error')
+        return redirect(url_for('main.index'))
+
+    employee = Employee.query.filter_by(
+        id=employee_id,
+        project_id=project_id
+    ).first_or_404()
 
     if request.method == 'POST':
         payment_date_str = request.form.get('payment_date')
@@ -113,7 +151,8 @@ def salary_payment(employee_id):
             transaction_date=payment_date_val,
             notes=f'راتب {employee.name} - {notes}',
             is_salary=True,
-            employee_id=employee_id
+            employee_id=employee_id,
+            project_id=project_id
         )
 
         db.session.add(expense)
@@ -128,7 +167,10 @@ def salary_payment(employee_id):
         flash('تم تسجيل صرف الراتب بنجاح', 'success')
         return redirect(url_for('employees.list_employees'))
 
-    accounts = Account.query.filter_by(is_active=True).all()
+    accounts = Account.query.filter_by(
+        project_id=project_id,
+        is_active=True
+    ).all()
     return render_template('employees/salary_payment.html',
                          employee=employee,
                          accounts=accounts,
