@@ -24,6 +24,7 @@ def add_project():
             return redirect(url_for('projects.add_project'))
 
         project = Project(name_ar=name_ar, name_en=name_en)
+        project.set_pin('1234')  # Default PIN
         db.session.add(project)
         db.session.commit()
 
@@ -72,8 +73,71 @@ def delete_project(id):
 
 @projects_bp.route('/select/<int:id>')
 def select_project(id):
-    """Select project and redirect to its dashboard"""
+    """Select project - requires PIN verification"""
     project = Project.query.get_or_404(id)
-    session['selected_project_id'] = id
-    session['selected_project_name'] = project.name_ar
-    return redirect(url_for('main.project_dashboard', project_id=id))
+    
+    # If already verified in this session, go directly
+    if session.get(f'project_{id}_verified'):
+        session['selected_project_id'] = id
+        session['selected_project_name'] = project.name_ar
+        return redirect(url_for('main.project_dashboard', project_id=id))
+    
+    # Otherwise show PIN entry
+    return redirect(url_for('projects.verify_pin', id=id))
+
+
+@projects_bp.route('/verify-pin/<int:id>', methods=['GET', 'POST'])
+def verify_pin(id):
+    """PIN verification page for project access"""
+    project = Project.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        pin = request.form.get('pin', '').strip()
+        
+        if project.check_pin(pin):
+            session[f'project_{id}_verified'] = True
+            session['selected_project_id'] = id
+            session['selected_project_name'] = project.name_ar
+            flash(f'تم الدخول إلى {project.name_ar}', 'success')
+            return redirect(url_for('main.project_dashboard', project_id=id))
+        else:
+            flash('الرقم السري غير صحيح', 'error')
+            return redirect(url_for('projects.verify_pin', id=id))
+    
+    return render_template('projects/verify_pin.html', project=project)
+
+
+@projects_bp.route('/change-pin/<int:id>', methods=['GET', 'POST'])
+def change_pin(id):
+    """Change project PIN - requires old PIN"""
+    project = Project.query.get_or_404(id)
+    
+    # Must be verified to change PIN
+    if not session.get(f'project_{id}_verified'):
+        flash('يجب الدخول للمشروع أولاً', 'error')
+        return redirect(url_for('projects.verify_pin', id=id))
+    
+    if request.method == 'POST':
+        old_pin = request.form.get('old_pin', '').strip()
+        new_pin = request.form.get('new_pin', '').strip()
+        confirm_pin = request.form.get('confirm_pin', '').strip()
+        
+        if not project.check_pin(old_pin):
+            flash('الرقم السري القديم غير صحيح', 'error')
+            return redirect(url_for('projects.change_pin', id=id))
+        
+        if not new_pin or len(new_pin) < 4:
+            flash('الرقم السري الجديد يجب أن يكون 4 أرقام على الأقل', 'error')
+            return redirect(url_for('projects.change_pin', id=id))
+        
+        if new_pin != confirm_pin:
+            flash('الرقم السري الجديد غير متطابق', 'error')
+            return redirect(url_for('projects.change_pin', id=id))
+        
+        project.set_pin(new_pin)
+        db.session.commit()
+        
+        flash('تم تغيير الرقم السري بنجاح ✅', 'success')
+        return redirect(url_for('main.project_dashboard', project_id=id))
+    
+    return render_template('projects/change_pin.html', project=project)

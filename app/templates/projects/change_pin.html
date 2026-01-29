@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card shadow-lg" style="max-width: 450px; width: 100%;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-key fa-3x text-warning"></i>
+                <h4 class="mt-3">تغيير الرقم السري</h4>
+                <p class="text-muted">{{ project.name_ar }}</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('projects.change_pin', id=project.id) }}">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">الرقم السري القديم</label>
+                    <input type="password" 
+                           class="form-control form-control-lg text-center" 
+                           name="old_pin" 
+                           placeholder="● ● ● ●"
+                           maxlength="10"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           required
+                           style="letter-spacing: 8px;">
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">الرقم السري الجديد</label>
+                    <input type="password" 
+                           class="form-control form-control-lg text-center" 
+                           name="new_pin" 
+                           placeholder="● ● ● ●"
+                           maxlength="10"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           required
+                           style="letter-spacing: 8px;">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">تأكيد الرقم السري الجديد</label>
+                    <input type="password" 
+                           class="form-control form-control-lg text-center" 
+                           name="confirm_pin" 
+                           placeholder="● ● ● ●"
+                           maxlength="10"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           required
+                           style="letter-spacing: 8px;">
+                </div>
+                
+                <button type="submit" class="btn btn-warning btn-lg w-100 mb-3">
+                    <i class="fas fa-save me-2"></i>حفظ الرقم السري
+                </button>
+                
+                <a href="{{ url_for('main.project_dashboard', project_id=project.id) }}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-right me-1"></i>العودة للمشروع
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -11,6 +11,9 @@
         </h1>
     </div>
     <div class="col-md-4 text-start">
+        <a href="{{ url_for('projects.change_pin', id=project.id) }}" class="btn btn-outline-warning me-2">
+            <i class="bi bi-key"></i> تغيير الرقم السري
+        </a>
         <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
             <i class="bi bi-arrow-right-circle"></i> تغيير المشروع
         </a>
@@ -157,7 +160,7 @@
             <div class="card-body text-center">
                 <i class="bi bi-hourglass-split text-warning" style="font-size: 1.5rem;"></i>
                 <h6 class="text-muted mt-1">المدى الزمني المتبقي</h6>
-                {% if runway_months == float('inf') %}
+                {% if runway_months is none or runway_months > 9999 %}
                     <h3 class="text-success">∞</h3>
                 {% else %}
                     <h3 class="{% if runway_months > 6 %}text-success{% elif runway_months > 3 %}text-warning{% else %}text-danger{% endif %}">

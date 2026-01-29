@@ -1,6 +1,7 @@
 from datetime import datetime, date, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -11,9 +12,20 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name_ar = db.Column(db.String(200), nullable=False)
     name_en = db.Column(db.String(200))
+    pin_hash = db.Column(db.String(256), nullable=True)  # Hashed PIN for project access
     phase = db.Column(db.String(20), default='building')  # 'building' or 'operating'
     owner_capital = db.Column(db.Numeric(15, 2), default=0.00)  # Initial investment/capital
     is_active = db.Column(db.Boolean, default=True)
+
+    def set_pin(self, pin):
+        """Hash and store the PIN"""
+        self.pin_hash = generate_password_hash(str(pin), method='pbkdf2:sha256')
+
+    def check_pin(self, pin):
+        """Verify PIN against stored hash"""
+        if not self.pin_hash:
+            return False
+        return check_password_hash(self.pin_hash, str(pin))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
