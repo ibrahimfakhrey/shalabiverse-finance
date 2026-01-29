@@ -73,16 +73,7 @@ def delete_project(id):
 
 @projects_bp.route('/select/<int:id>')
 def select_project(id):
-    """Select project - requires PIN verification"""
-    project = Project.query.get_or_404(id)
-    
-    # If already verified in this session, go directly
-    if session.get(f'project_{id}_verified'):
-        session['selected_project_id'] = id
-        session['selected_project_name'] = project.name_ar
-        return redirect(url_for('main.project_dashboard', project_id=id))
-    
-    # Otherwise show PIN entry
+    """Select project - always requires PIN"""
     return redirect(url_for('projects.verify_pin', id=id))
 
 
@@ -95,7 +86,6 @@ def verify_pin(id):
         pin = request.form.get('pin', '').strip()
         
         if project.check_pin(pin):
-            session[f'project_{id}_verified'] = True
             session['selected_project_id'] = id
             session['selected_project_name'] = project.name_ar
             flash(f'تم الدخول إلى {project.name_ar}', 'success')
@@ -112,8 +102,8 @@ def change_pin(id):
     """Change project PIN - requires old PIN"""
     project = Project.query.get_or_404(id)
     
-    # Must be verified to change PIN
-    if not session.get(f'project_{id}_verified'):
+    # Must have this project selected
+    if session.get('selected_project_id') != id:
         flash('يجب الدخول للمشروع أولاً', 'error')
         return redirect(url_for('projects.verify_pin', id=id))
     
