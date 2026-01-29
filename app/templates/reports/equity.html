@@ -1,27 +1,105 @@
 {% extends 'base.html' %}
 
-{% block title %}قيمة المشروع - شلبي فيرس{% endblock %}
+{% block title %}حقوق الملكية - شلبي فيرس{% endblock %}
 
 {% block content %}
-<h2><i class="bi bi-building"></i> قيمة المشروع (Equity)</h2>
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-building"></i> تقرير حقوق الملكية</h2>
+        <p class="text-muted">رأس مال المالك + الأرباح المحتجزة - الالتزامات = صافي قيمة المشروع</p>
+    </div>
+</div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-4">
-                <h5>الأصول (Assets)</h5>
-                <h3 class="text-success">{{ equity.assets|currency }}</h3>
-                <p class="text-muted">الرصيد + الديون لينا</p>
+<div class="row">
+    <!-- Equity Breakdown -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">قائمة حقوق الملكية</h5>
             </div>
-            <div class="col-md-4">
-                <h5>الالتزامات (Liabilities)</h5>
-                <h3 class="text-danger">{{ equity.liabilities|currency }}</h3>
-                <p class="text-muted">الديون علينا</p>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0 fs-5">
+                    <tbody>
+                        <!-- Owner Capital -->
+                        <tr class="table-primary">
+                            <td class="fw-bold">رأس مال المالك</td>
+                            <td class="text-start fw-bold">{{ owner_capital|currency }}</td>
+                        </tr>
+
+                        <!-- Retained Earnings -->
+                        <tr class="{% if retained_earnings >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold">(+) الأرباح المحتجزة</td>
+                            <td class="text-start fw-bold">{{ retained_earnings|currency }}</td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2"><hr class="my-1"></td>
+                        </tr>
+
+                        <!-- Liabilities -->
+                        <tr class="table-warning">
+                            <td class="fw-bold">(-) الالتزامات</td>
+                            <td class="text-start fw-bold text-danger">({{ total_liabilities|currency }})</td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">
+                                <small class="text-muted">قروض غير مسددة</small>
+                            </td>
+                            <td class="text-start"><small>{{ unpaid_loans|currency }}</small></td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">
+                                <small class="text-muted">ديون علينا</small>
+                            </td>
+                            <td class="text-start"><small>{{ debts_by_us|currency }}</small></td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2"><hr class="my-1"></td>
+                        </tr>
+
+                        <!-- Net Project Value -->
+                        <tr class="{% if net_project_value >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold fs-4">صافي قيمة المشروع</td>
+                            <td class="text-start fw-bold fs-4">{{ net_project_value|currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="col-md-4">
-                <h5>صافي القيمة (Equity)</h5>
-                <h3 class="text-info">{{ equity.equity|currency }}</h3>
-                <p class="text-muted">الأصول - الالتزامات</p>
+        </div>
+
+        {% if building_costs > 0 %}
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-tools"></i>
+            <strong>تكاليف مرحلة البناء (استثمار):</strong> {{ building_costs|currency }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="col-md-4">
+        <div class="card bg-primary text-white mb-3">
+            <div class="card-body text-center">
+                <h6>إجمالي الأصول</h6>
+                <h3>{{ total_assets|currency }}</h3>
+                <small>رصيد الحسابات: {{ total_balance|currency }}</small><br>
+                <small>ديون لنا: {{ debts_to_us|currency }}</small>
+            </div>
+        </div>
+
+        <div class="card bg-danger text-white mb-3">
+            <div class="card-body text-center">
+                <h6>إجمالي الالتزامات</h6>
+                <h3>{{ total_liabilities|currency }}</h3>
+                <small>قروض: {{ unpaid_loans|currency }}</small><br>
+                <small>ديون علينا: {{ debts_by_us|currency }}</small>
+            </div>
+        </div>
+
+        <div class="card {% if net_project_value >= 0 %}bg-success{% else %}bg-warning{% endif %} text-white">
+            <div class="card-body text-center">
+                <h6>صافي قيمة المشروع</h6>
+                <h2>{{ net_project_value|currency }}</h2>
             </div>
         </div>
     </div>

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}القروض - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="bi bi-bank"></i> القروض</h2>
+    </div>
+    <div class="col-md-6 text-start">
+        <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> إضافة قرض جديد
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5><i class="bi bi-cash-stack"></i> إجمالي القروض</h5>
+                <h3>{{ total_loans|currency }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5><i class="bi bi-exclamation-triangle"></i> المتبقي للسداد</h5>
+                <h3>{{ total_remaining|currency }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5><i class="bi bi-check-circle"></i> المسدد</h5>
+                <h3>{{ total_paid|currency }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('loans.list_loans', status='all') }}"
+               class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">الكل</a>
+            <a href="{{ url_for('loans.list_loans', status='unpaid') }}"
+               class="btn btn-outline-danger {% if status_filter == 'unpaid' %}active{% endif %}">غير مسدد</a>
+            <a href="{{ url_for('loans.list_loans', status='paid') }}"
+               class="btn btn-outline-success {% if status_filter == 'paid' %}active{% endif %}">مسدد</a>
+        </div>
+    </div>
+</div>
+
+<!-- Loans Table -->
+<div class="card">
+    <div class="card-body">
+        {% if loans %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>المُقرض</th>
+                        <th>المبلغ</th>
+                        <th>المتبقي</th>
+                        <th>تاريخ الاستلام</th>
+                        <th>تاريخ الاستحقاق</th>
+                        <th>الحساب</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr class="{% if loan.is_overdue() %}table-danger{% elif loan.is_upcoming() %}table-warning{% endif %}">
+                        <td>
+                            <a href="{{ url_for('loans.loan_detail', id=loan.id) }}">
+                                {{ loan.lender_name }}
+                            </a>
+                        </td>
+                        <td>{{ loan.amount|currency }}</td>
+                        <td>{{ loan.remaining_amount|currency }}</td>
+                        <td>{{ loan.received_date|date_ar }}</td>
+                        <td>{{ loan.due_date|date_ar if loan.due_date else '-' }}</td>
+                        <td>{{ loan.account.name if loan.account else '-' }}</td>
+                        <td>
+                            {% if loan.is_paid %}
+                                <span class="badge bg-success">مسدد</span>
+                            {% elif loan.is_overdue() %}
+                                <span class="badge bg-danger">متأخر</span>
+                            {% elif loan.is_upcoming() %}
+                                <span class="badge bg-warning">قريب الاستحقاق</span>
+                            {% else %}
+                                <span class="badge bg-info">قائم</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('loans.loan_detail', id=loan.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> تفاصيل
+                            </a>
+                            <form method="POST" action="{{ url_for('loans.delete_loan', id=loan.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('هل أنت متأكد من حذف هذا القرض؟')">
+                                    <i class="bi bi-trash"></i> حذف
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+            لا توجد قروض مسجلة
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

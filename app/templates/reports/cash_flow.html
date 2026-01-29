@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}التدفق النقدي - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="bi bi-arrow-left-right"></i> تقرير التدفق النقدي</h2>
+        <p class="text-muted">جميع التدفقات النقدية الداخلة والخارجة بما فيها القروض</p>
+    </div>
+</div>
+
+<!-- Period Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">الفترة الزمنية</label>
+                <select name="period" class="form-select" onchange="this.form.submit()">
+                    <option value="today" {% if selected_period == 'today' %}selected{% endif %}>اليوم</option>
+                    <option value="week" {% if selected_period == 'week' %}selected{% endif %}>الأسبوع</option>
+                    <option value="month" {% if selected_period == 'month' %}selected{% endif %}>الشهر</option>
+                    <option value="year" {% if selected_period == 'year' %}selected{% endif %}>السنة</option>
+                    <option value="custom" {% if selected_period == 'custom' %}selected{% endif %}>مخصص</option>
+                </select>
+            </div>
+            {% if selected_period == 'custom' %}
+            <div class="col-md-3">
+                <label class="form-label">من</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">إلى</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">تطبيق</button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Cash In -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-down-circle"></i> التدفقات الداخلة (Cash In)</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <tr>
+                            <td><i class="bi bi-cash-stack"></i> إيرادات التشغيل</td>
+                            <td class="text-start text-success fw-bold">{{ income_total|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-bank"></i> قروض مستلمة</td>
+                            <td class="text-start text-info fw-bold">{{ loans_received|currency }}</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td class="fw-bold fs-5">إجمالي التدفقات الداخلة</td>
+                            <td class="text-start fw-bold fs-5">{{ total_cash_in|currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Out -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-up-circle"></i> التدفقات الخارجة (Cash Out)</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <tr>
+                            <td><i class="bi bi-cart"></i> المصروفات</td>
+                            <td class="text-start text-danger fw-bold">{{ expenses_total|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-credit-card"></i> سداد قروض</td>
+                            <td class="text-start text-warning fw-bold">{{ loan_payments_total|currency }}</td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td class="fw-bold fs-5">إجمالي التدفقات الخارجة</td>
+                            <td class="text-start fw-bold fs-5">{{ total_cash_out|currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Net Cash Flow -->
+<div class="row">
+    <div class="col-12">
+        <div class="card {% if net_cash_flow >= 0 %}border-success{% else %}border-danger{% endif %}">
+            <div class="card-body text-center">
+                <h4>صافي التدفق النقدي</h4>
+                <h1 class="display-4 {% if net_cash_flow >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ net_cash_flow|currency }}
+                </h1>
+                <p class="text-muted">
+                    {{ start_date|date_ar }} - {{ end_date|date_ar }}
+                </p>
+                {% if net_cash_flow >= 0 %}
+                    <span class="badge bg-success fs-6">تدفق نقدي إيجابي</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">تدفق نقدي سلبي</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

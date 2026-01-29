@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}العائد على الاستثمار - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-graph-up"></i> تقرير العائد على الاستثمار (ROI)</h2>
+        <p class="text-muted">إجمالي الاستثمار | صافي الربح | نسبة العائد</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">تحليل العائد على الاستثمار</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <!-- Investment Section -->
+                        <tr class="table-secondary">
+                            <td colspan="2" class="fw-bold fs-5">الاستثمار</td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">رأس مال المالك</td>
+                            <td class="text-start">{{ owner_capital|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">تكاليف مرحلة البناء</td>
+                            <td class="text-start">{{ building_costs|currency }}</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td class="fw-bold">إجمالي الاستثمار</td>
+                            <td class="text-start fw-bold">{{ total_investment|currency }}</td>
+                        </tr>
+
+                        <tr><td colspan="2"><hr class="my-1"></td></tr>
+
+                        <!-- Returns Section -->
+                        <tr class="table-secondary">
+                            <td colspan="2" class="fw-bold fs-5">العوائد</td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">إجمالي الإيرادات</td>
+                            <td class="text-start text-success">{{ total_income|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pe-5">(-) المصاريف التشغيلية</td>
+                            <td class="text-start text-danger">({{ total_operating_expenses|currency }})</td>
+                        </tr>
+                        <tr class="{% if net_profit >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold">صافي الربح</td>
+                            <td class="text-start fw-bold">{{ net_profit|currency }}</td>
+                        </tr>
+
+                        <tr><td colspan="2"><hr class="my-1"></td></tr>
+
+                        <!-- ROI -->
+                        <tr class="{% if roi_pct >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold fs-4">العائد على الاستثمار (ROI)</td>
+                            <td class="text-start fw-bold fs-4">{{ "%.1f"|format(roi_pct) }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- ROI Gauge -->
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h5>نسبة العائد</h5>
+                <div class="display-1 {% if roi_pct > 0 %}text-success{% elif roi_pct == 0 %}text-secondary{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(roi_pct) }}%
+                </div>
+                {% if roi_pct > 100 %}
+                    <span class="badge bg-success fs-6">ممتاز</span>
+                {% elif roi_pct > 50 %}
+                    <span class="badge bg-primary fs-6">جيد جداً</span>
+                {% elif roi_pct > 0 %}
+                    <span class="badge bg-info fs-6">إيجابي</span>
+                {% elif roi_pct == 0 %}
+                    <span class="badge bg-secondary fs-6">نقطة التعادل</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">سلبي</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> كيف يُحسب ROI</h6>
+                <hr>
+                <p class="mb-1"><strong>ROI = (صافي الربح ÷ إجمالي الاستثمار) × 100</strong></p>
+                <small class="text-muted">
+                    الاستثمار يشمل: رأس المال + تكاليف البناء<br>
+                    صافي الربح = الإيرادات - المصاريف التشغيلية<br>
+                    (لا يشمل تكاليف البناء لأنها استثمار)
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

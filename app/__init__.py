@@ -34,6 +34,7 @@ def create_app(config_name='default'):
     from app.blueprints.employees import employees_bp
     from app.blueprints.reports import reports_bp
     from app.blueprints.projects import projects_bp
+    from app.blueprints.loans import loans_bp
 
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(income_bp, url_prefix='/income')
@@ -43,6 +44,7 @@ def create_app(config_name='default'):
     app.register_blueprint(employees_bp, url_prefix='/employees')
     app.register_blueprint(reports_bp, url_prefix='/reports')
     app.register_blueprint(projects_bp, url_prefix='/projects')
+    app.register_blueprint(loans_bp, url_prefix='/loans')
 
     # Register template filters
     from app.utils import format_currency, format_date_ar

@@ -11,6 +11,8 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name_ar = db.Column(db.String(200), nullable=False)
     name_en = db.Column(db.String(200))
+    phase = db.Column(db.String(20), default='building')  # 'building' or 'operating'
+    owner_capital = db.Column(db.Numeric(15, 2), default=0.00)  # Initial investment/capital
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -21,6 +23,7 @@ class Project(db.Model):
     debts = db.relationship('Debt', backref='project', lazy='dynamic')
     income_transactions = db.relationship('IncomeTransaction', backref='project', lazy='dynamic')
     expense_transactions = db.relationship('ExpenseTransaction', backref='project', lazy='dynamic')
+    loans = db.relationship('Loan', backref='project', lazy='dynamic')
 
 
 class AccountType(db.Model):
@@ -110,8 +113,10 @@ class ExpenseTransaction(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     transaction_date = db.Column(db.Date, nullable=False, default=date.today)
+    phase = db.Column(db.String(20), default='operating')  # 'building' or 'operating'
     notes = db.Column(db.Text)
     is_salary = db.Column(db.Boolean, default=False)
+    is_direct_cost = db.Column(db.Boolean, default=False)  # Direct cost vs operating expense
     employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -124,6 +129,7 @@ class Employee(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     base_salary = db.Column(db.Numeric(15, 2), nullable=False, default=0.00)
+    contract_type = db.Column(db.String(20), default='full-time')  # full-time/part-time/freelancer
     hire_date = db.Column(db.Date)
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
@@ -211,6 +217,60 @@ class DebtPayment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     account = db.relationship('Account')
+
+
+class Loan(db.Model):
+    __tablename__ = 'loans'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
+    lender_name = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Numeric(15, 2), nullable=False)
+    received_date = db.Column(db.Date, nullable=False, default=date.today)
+    due_date = db.Column(db.Date)
+    interest_rate = db.Column(db.Numeric(5, 2), default=0.00)
+    remaining_amount = db.Column(db.Numeric(15, 2), nullable=False)
+    is_paid = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.Text)
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    payments = db.relationship('LoanPayment', backref='loan', lazy='dynamic', cascade='all, delete-orphan')
+    account = db.relationship('Account', foreign_keys=[account_id])
+
+    def is_upcoming(self, days=7):
+        """Check if loan is due within specified days"""
+        if not self.due_date or self.is_paid:
+            return False
+        days_until_due = (self.due_date - date.today()).days
+        return 0 <= days_until_due <= days
+
+    def is_overdue(self):
+        """Check if loan is overdue"""
+        if not self.due_date or self.is_paid:
+            return False
+        return self.due_date < date.today()
+
+    def update_status(self):
+        """Update paid status based on remaining amount"""
+        if float(self.remaining_amount) <= 0:
+            self.is_paid = True
+            self.remaining_amount = 0
+
+
+class LoanPayment(db.Model):
+    __tablename__ = 'loan_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    loan_id = db.Column(db.Integer, db.ForeignKey('loans.id'), nullable=False)
+    amount = db.Column(db.Numeric(15, 2), nullable=False)
+    payment_date = db.Column(db.Date, nullable=False, default=date.today)
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=False)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    account = db.relationship('Account', foreign_keys=[account_id])
 
 
 class SystemSetting(db.Model):

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}مؤشرات الأداء - شلبي فيرس{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-speedometer"></i> مؤشرات الأداء الرئيسية (KPIs)</h2>
+        <p class="text-muted">مشروع: {{ project.name_ar }}</p>
+    </div>
+</div>
+
+<!-- KPI Cards Row 1 -->
+<div class="row mb-4">
+    <!-- Burn Rate -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-danger h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-fire text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="text-muted">معدل الإنفاق الشهري</h5>
+                <h2 class="text-danger">{{ burn_rate|currency }}</h2>
+                <small class="text-muted">متوسط المصروفات التشغيلية شهرياً (آخر 6 أشهر)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Runway -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-hourglass-split text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="text-muted">المدى الزمني المتبقي</h5>
+                {% if runway_months == float('inf') %}
+                    <h2 class="text-success">∞</h2>
+                    <small class="text-muted">لا يوجد إنفاق تشغيلي</small>
+                {% else %}
+                    <h2 class="{% if runway_months > 6 %}text-success{% elif runway_months > 3 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ "%.1f"|format(runway_months) }} شهر
+                    </h2>
+                    <small class="text-muted">بناءً على النقد الحالي ({{ total_cash|currency }})</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Cash -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-wallet2 text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="text-muted">النقد المتاح</h5>
+                <h2 class="text-primary">{{ total_cash|currency }}</h2>
+                <small class="text-muted">إجمالي رصيد الحسابات</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards Row 2 -->
+<div class="row mb-4">
+    <!-- Gross Margin -->
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">هامش الربح الإجمالي</h6>
+                <h2 class="{% if gross_margin_pct > 50 %}text-success{% elif gross_margin_pct > 20 %}text-info{% else %}text-warning{% endif %}">
+                    {{ "%.1f"|format(gross_margin_pct) }}%
+                </h2>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: {{ [gross_margin_pct, 100]|min }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net Margin -->
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">هامش صافي الربح</h6>
+                <h2 class="{% if net_margin_pct > 20 %}text-success{% elif net_margin_pct > 0 %}text-info{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(net_margin_pct) }}%
+                </h2>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar {% if net_margin_pct >= 0 %}bg-success{% else %}bg-danger{% endif %}"
+                         style="width: {{ [net_margin_pct|abs, 100]|min }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROI -->
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">العائد على الاستثمار</h6>
+                <h2 class="{% if roi_pct > 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(roi_pct) }}%
+                </h2>
+                <small class="text-muted">استثمار: {{ total_investment|currency }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operating Cost Ratio -->
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">نسبة تكاليف التشغيل</h6>
+                <h2 class="{% if operating_cost_ratio < 70 %}text-success{% elif operating_cost_ratio < 90 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(operating_cost_ratio) }}%
+                </h2>
+                <small class="text-muted">من الإيرادات</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Breakdown -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> ملخص الإيرادات والأرباح</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <tbody>
+                        <tr>
+                            <td>إجمالي الإيرادات</td>
+                            <td class="text-start text-success fw-bold">{{ total_income|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td>(-) التكاليف المباشرة</td>
+                            <td class="text-start text-danger">{{ total_direct_costs|currency }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold">إجمالي الربح</td>
+                            <td class="text-start fw-bold">{{ gross_profit|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td>(-) مصاريف تشغيلية</td>
+                            <td class="text-start text-danger">{{ total_operating_expenses|currency }}</td>
+                        </tr>
+                        <tr class="{% if net_profit >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold">صافي الربح</td>
+                            <td class="text-start fw-bold">{{ net_profit|currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> ملخص الاستثمار</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <tbody>
+                        <tr>
+                            <td>رأس مال المالك</td>
+                            <td class="text-start">{{ owner_capital|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td>تكاليف مرحلة البناء</td>
+                            <td class="text-start">{{ building_costs|currency }}</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td class="fw-bold">إجمالي الاستثمار</td>
+                            <td class="text-start fw-bold">{{ total_investment|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td>صافي الربح</td>
+                            <td class="text-start {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ net_profit|currency }}
+                            </td>
+                        </tr>
+                        <tr class="{% if roi_pct >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold">العائد على الاستثمار</td>
+                            <td class="text-start fw-bold">{{ "%.1f"|format(roi_pct) }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

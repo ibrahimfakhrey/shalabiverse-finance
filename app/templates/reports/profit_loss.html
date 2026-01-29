@@ -3,24 +3,125 @@
 {% block title %}الربح والخسارة - شلبي فيرس{% endblock %}
 
 {% block content %}
-<h2><i class="bi bi-graph-up-arrow"></i> تقرير الربح والخسارة</h2>
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="bi bi-graph-up-arrow"></i> تقرير الربح والخسارة</h2>
+        <p class="text-muted">يتضمن فقط العمليات التشغيلية - لا يشمل مرحلة البناء أو القروض</p>
+    </div>
+</div>
 
-<div class="card">
+<!-- Period Filter -->
+<div class="card mb-4">
     <div class="card-body">
-        <p><strong>الفترة:</strong> {{ start_date|date_ar }} - {{ end_date|date_ar }}</p>
-        <hr>
-        <div class="row">
-            <div class="col-md-4">
-                <h5>إجمالي الدخل</h5>
-                <h3 class="text-success">{{ total_income|currency }}</h3>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">الفترة الزمنية</label>
+                <select name="period" class="form-select" onchange="this.form.submit()">
+                    <option value="today" {% if selected_period == 'today' %}selected{% endif %}>اليوم</option>
+                    <option value="week" {% if selected_period == 'week' %}selected{% endif %}>الأسبوع</option>
+                    <option value="month" {% if selected_period == 'month' %}selected{% endif %}>الشهر</option>
+                    <option value="year" {% if selected_period == 'year' %}selected{% endif %}>السنة</option>
+                    <option value="custom" {% if selected_period == 'custom' %}selected{% endif %}>مخصص</option>
+                </select>
             </div>
-            <div class="col-md-4">
-                <h5>إجمالي المصروفات</h5>
-                <h3 class="text-danger">{{ total_expenses|currency }}</h3>
+            {% if selected_period == 'custom' %}
+            <div class="col-md-3">
+                <label class="form-label">من</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
             </div>
-            <div class="col-md-4">
-                <h5>صافي الربح/الخسارة</h5>
-                <h3 class="{% if profit_loss >= 0 %}text-info{% else %}text-warning{% endif %}">{{ profit_loss|currency }}</h3>
+            <div class="col-md-3">
+                <label class="form-label">إلى</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">تطبيق</button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">قائمة الدخل</h5>
+                <small>{{ start_date|date_ar }} - {{ end_date|date_ar }}</small>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <!-- Operating Revenue -->
+                        <tr class="table-success">
+                            <td class="fw-bold fs-5">إيرادات التشغيل</td>
+                            <td class="text-start fw-bold fs-5 text-success">{{ total_income|currency }}</td>
+                        </tr>
+
+                        <!-- Direct Costs -->
+                        <tr class="table-light">
+                            <td class="pe-4">(-) تكاليف مباشرة</td>
+                            <td class="text-start text-danger">({{ direct_costs|currency }})</td>
+                        </tr>
+
+                        <!-- Gross Profit -->
+                        <tr class="table-info">
+                            <td class="fw-bold">إجمالي الربح</td>
+                            <td class="text-start fw-bold {% if gross_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ gross_profit|currency }}
+                            </td>
+                        </tr>
+                        <tr class="table-info">
+                            <td>هامش الربح الإجمالي</td>
+                            <td class="text-start">{{ "%.1f"|format(gross_margin_pct) }}%</td>
+                        </tr>
+
+                        <!-- Operating Expenses -->
+                        <tr class="table-light">
+                            <td class="pe-4">(-) مصاريف تشغيلية</td>
+                            <td class="text-start text-danger">({{ operating_expenses|currency }})</td>
+                        </tr>
+
+                        <!-- Net Profit -->
+                        <tr class="{% if net_profit >= 0 %}table-success{% else %}table-danger{% endif %}">
+                            <td class="fw-bold fs-5">صافي الربح</td>
+                            <td class="text-start fw-bold fs-5">{{ net_profit|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td>هامش صافي الربح</td>
+                            <td class="text-start">{{ "%.1f"|format(net_margin_pct) }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if building_expenses > 0 %}
+        <div class="alert alert-warning mt-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>ملاحظة:</strong> توجد مصروفات في مرحلة البناء بقيمة
+            <strong>{{ building_expenses|currency }}</strong>
+            وهي لا تُحتسب في تقرير الأرباح والخسائر (تُعامل كاستثمار).
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Income Breakdown -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pie-chart"></i> تفصيل الإيرادات</h6>
+            </div>
+            <div class="card-body">
+                {% if income_by_category %}
+                    {% for category, total in income_by_category %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ category }}</span>
+                        <strong>{{ total|currency }}</strong>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">لا توجد بيانات</p>
+                {% endif %}
             </div>
         </div>
     </div>
