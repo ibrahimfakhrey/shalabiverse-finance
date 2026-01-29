@@ -27,10 +27,9 @@
 <div class="row">
     {% for item in project_data %}
     <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm" style="transition: transform 0.2s; cursor: pointer;"
+        <div class="card h-100 shadow-sm" style="transition: transform 0.2s;"
              onmouseover="this.style.transform='translateY(-5px)'"
              onmouseout="this.style.transform='translateY(0)'"
-             onclick="window.location='{{ url_for('projects.select_project', id=item.project.id) }}'">
             <div class="card-body">
                 <h5 class="card-title">
                     <i class="bi bi-folder-fill text-primary"></i>
@@ -42,36 +41,42 @@
 
                 <hr>
 
-                <div class="mb-2">
-                    <strong>الرصيد الحالي:</strong>
-                    <span class="{% if item.summary.total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-                        {{ item.summary.total_balance|currency }}
-                    </span>
+                <div style="filter: blur(8px); -webkit-filter: blur(8px); user-select: none; pointer-events: none;">
+                    <div class="mb-2">
+                        <strong>الرصيد الحالي:</strong>
+                        <span class="{% if item.summary.total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ item.summary.total_balance|currency }}
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <strong>الحسابات:</strong>
+                        <span class="badge bg-info">{{ item.summary.account_count }}</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <strong>الموظفين:</strong>
+                        <span class="badge bg-success">{{ item.summary.employee_count }}</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <strong>الديون لنا:</strong>
+                        <span class="text-success">{{ item.summary.debts_to_us|currency }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>الديون علينا:</strong>
+                        <span class="text-danger">{{ item.summary.debts_by_us|currency }}</span>
+                    </div>
                 </div>
 
-                <div class="mb-2">
-                    <strong>الحسابات:</strong>
-                    <span class="badge bg-info">{{ item.summary.account_count }}</span>
-                </div>
-
-                <div class="mb-2">
-                    <strong>الموظفين:</strong>
-                    <span class="badge bg-success">{{ item.summary.employee_count }}</span>
-                </div>
-
-                <div class="mb-2">
-                    <strong>الديون لنا:</strong>
-                    <span class="text-success">{{ item.summary.debts_to_us|currency }}</span>
-                </div>
-
-                <div class="mb-3">
-                    <strong>الديون علينا:</strong>
-                    <span class="text-danger">{{ item.summary.debts_by_us|currency }}</span>
+                <div class="text-center mb-2">
+                    <small class="text-muted"><i class="bi bi-lock-fill"></i> أدخل الرقم السري لعرض التفاصيل</small>
                 </div>
 
                 <a href="{{ url_for('projects.select_project', id=item.project.id) }}"
-                   class="btn btn-primary w-100">
-                    <i class="bi bi-arrow-left-circle"></i> عرض التفاصيل
+                   class="btn btn-warning w-100">
+                    <i class="bi bi-lock"></i> فتح المشروع
                 </a>
             </div>
             <div class="card-footer text-muted">
