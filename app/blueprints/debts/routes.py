@@ -52,6 +52,7 @@ def add_debt():
         debt_type = request.form.get('debt_type')
         person_name = request.form.get('person_name', '').strip()
         amount = request.form.get('amount', type=float)
+        account_id = request.form.get('account_id', type=int)
         due_date_str = request.form.get('due_date')
         notes = request.form.get('notes', '').strip()
 
@@ -66,6 +67,7 @@ def add_debt():
             person_name=person_name,
             original_amount=amount,
             remaining_amount=amount,
+            account_id=account_id,
             due_date=due_date_val,
             notes=notes,
             project_id=project_id
@@ -74,10 +76,17 @@ def add_debt():
         db.session.add(debt)
         db.session.commit()
 
-        flash('تم إضافة الدين بنجاح', 'success')
+        # Update account balance (debt affects cash)
+        if account_id:
+            account = Account.query.get(account_id)
+            if account:
+                account.update_balance()
+
+        flash('تم إضافة الدين بنجاح وتم تحديث الرصيد', 'success')
         return redirect(url_for('debts.list_debts'))
 
-    return render_template('debts/add.html', today=date.today())
+    accounts = Account.query.filter_by(project_id=project_id, is_active=True).all()
+    return render_template('debts/add.html', today=date.today(), accounts=accounts)
 
 
 @debts_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -150,10 +159,14 @@ def record_payment(id):
 
         db.session.commit()
 
+        # Recalculate balance for the payment account
         if account_id:
             Account.query.get(account_id).update_balance()
+        # Also recalculate the original debt account if different
+        if debt.account_id and debt.account_id != account_id:
+            Account.query.get(debt.account_id).update_balance()
 
-        flash('تم تسجيل الدفعة بنجاح', 'success')
+        flash('تم تسجيل الدفعة بنجاح وتم تحديث الرصيد', 'success')
         return redirect(url_for('debts.list_debts'))
 
     accounts = Account.query.filter_by(
@@ -178,8 +191,15 @@ def delete_debt(id):
         id=id,
         project_id=project_id
     ).first_or_404()
+    account_id = debt.account_id
     db.session.delete(debt)
     db.session.commit()
+
+    # Recalculate balance after deleting debt
+    if account_id:
+        account = Account.query.get(account_id)
+        if account:
+            account.update_balance()
 
     flash('تم حذف الدين بنجاح', 'success')
     return redirect(url_for('debts.list_debts'))

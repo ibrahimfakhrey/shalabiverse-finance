@@ -80,11 +80,37 @@ class Account(db.Model):
         total_loan_payments = db.session.query(func.sum(LoanPayment.amount))\
             .filter(LoanPayment.account_id == self.id).scalar() or 0
 
+        # Debts owed BY us = someone gave us money (cash IN)
+        total_debts_by_us = db.session.query(func.sum(Debt.original_amount))\
+            .filter(Debt.account_id == self.id, Debt.debt_type == 'owed_by_us').scalar() or 0
+
+        # Debts owed TO us = we gave someone money (cash OUT)
+        total_debts_to_us = db.session.query(func.sum(Debt.original_amount))\
+            .filter(Debt.account_id == self.id, Debt.debt_type == 'owed_to_us').scalar() or 0
+
+        # Debt payments on debts BY us = we pay back (cash OUT)
+        debt_payments_by_us = db.session.query(func.sum(DebtPayment.amount))\
+            .join(Debt).filter(
+                DebtPayment.account_id == self.id,
+                Debt.debt_type == 'owed_by_us'
+            ).scalar() or 0
+
+        # Debt payments on debts TO us = they pay us back (cash IN)
+        debt_payments_to_us = db.session.query(func.sum(DebtPayment.amount))\
+            .join(Debt).filter(
+                DebtPayment.account_id == self.id,
+                Debt.debt_type == 'owed_to_us'
+            ).scalar() or 0
+
         self.current_balance = (float(self.initial_balance) 
                                 + float(total_income) 
                                 - float(total_expenses)
                                 + float(total_loans)
-                                - float(total_loan_payments))
+                                - float(total_loan_payments)
+                                + float(total_debts_by_us)
+                                - float(total_debts_to_us)
+                                - float(debt_payments_by_us)
+                                + float(debt_payments_to_us))
         db.session.commit()
 
 
@@ -196,6 +222,7 @@ class Debt(db.Model):
     person_name = db.Column(db.String(200), nullable=False)
     original_amount = db.Column(db.Numeric(15, 2), nullable=False)
     remaining_amount = db.Column(db.Numeric(15, 2), nullable=False)
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))  # Account linked to debt
     due_date = db.Column(db.Date)
     is_paid = db.Column(db.Boolean, default=False)
     payment_status = db.Column(db.String(20), default='unpaid')  # unpaid, partial, paid

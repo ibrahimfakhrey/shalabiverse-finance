@@ -5,36 +5,85 @@
 {% block content %}
 <h2>إضافة دين جديد</h2>
 
-<div class="card">
-    <div class="card-body">
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">نوع الدين *</label>
-                <select name="debt_type" class="form-select" required>
-                    <option value="">اختر النوع</option>
-                    <option value="owed_to_us">لينا (مستحق لنا)</option>
-                    <option value="owed_by_us">علينا (مستحق علينا)</option>
-                </select>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">نوع الدين *</label>
+                        <select name="debt_type" class="form-select" required id="debtType">
+                            <option value="">اختر النوع</option>
+                            <option value="owed_to_us">لينا (مستحق لنا) — أعطينا حد فلوس</option>
+                            <option value="owed_by_us">علينا (مستحق علينا) — حد أعطانا فلوس</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">اسم الشخص *</label>
+                        <input type="text" name="person_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">المبلغ *</label>
+                        <input type="number" name="amount" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الحساب *</label>
+                        <select name="account_id" class="form-select" required>
+                            <option value="">اختر الحساب</option>
+                            {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.name_ar }} ({{ account.current_balance|round(2) }})</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text" id="accountHint"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">تاريخ الاستحقاق</label>
+                        <input type="date" name="due_date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ملاحظات</label>
+                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning">حفظ</button>
+                    <a href="{{ url_for('debts.list_debts') }}" class="btn btn-secondary">إلغاء</a>
+                </form>
             </div>
-            <div class="mb-3">
-                <label class="form-label">اسم الشخص *</label>
-                <input type="text" name="person_name" class="form-control" required>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> كيف يعمل الدين؟</h6>
+                <hr>
+                <p><strong>دين لينا (أعطينا حد فلوس):</strong></p>
+                <ul class="small">
+                    <li>الرصيد <span class="text-danger">ينقص</span> بالمبلغ</li>
+                    <li>لما يرجعها → الرصيد يزيد</li>
+                    <li>لا يؤثر على الربح والخسارة</li>
+                </ul>
+                <p><strong>دين علينا (حد أعطانا فلوس):</strong></p>
+                <ul class="small">
+                    <li>الرصيد <span class="text-success">يزيد</span> بالمبلغ</li>
+                    <li>لما نرجعها → الرصيد ينقص</li>
+                    <li>لا يؤثر على الربح والخسارة</li>
+                </ul>
             </div>
-            <div class="mb-3">
-                <label class="form-label">المبلغ *</label>
-                <input type="number" name="amount" class="form-control" step="0.01" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">تاريخ الاستحقاق</label>
-                <input type="date" name="due_date" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">ملاحظات</label>
-                <textarea name="notes" class="form-control" rows="3"></textarea>
-            </div>
-            <button type="submit" class="btn btn-warning">حفظ</button>
-            <a href="{{ url_for('debts.list_debts') }}" class="btn btn-secondary">إلغاء</a>
-        </form>
+        </div>
     </div>
 </div>
+
+<script>
+document.getElementById('debtType').addEventListener('change', function() {
+    const hint = document.getElementById('accountHint');
+    if (this.value === 'owed_to_us') {
+        hint.innerHTML = '⬇️ سيتم خصم المبلغ من هذا الحساب (أعطينا حد فلوس)';
+        hint.className = 'form-text text-danger';
+    } else if (this.value === 'owed_by_us') {
+        hint.innerHTML = '⬆️ سيتم إضافة المبلغ لهذا الحساب (حد أعطانا فلوس)';
+        hint.className = 'form-text text-success';
+    } else {
+        hint.innerHTML = '';
+    }
+});
+</script>
 {% endblock %}
