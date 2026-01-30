@@ -74,11 +74,11 @@ def add_loan():
 
         db.session.add(loan)
 
-        # CRITICAL: Increase account balance (loan is NOT income)
-        account = Account.query.get(account_id)
-        account.current_balance = float(account.current_balance) + amount
-
         db.session.commit()
+
+        # CRITICAL: Recalculate account balance (includes loans)
+        account = Account.query.get(account_id)
+        account.update_balance()
 
         flash('تم إضافة القرض بنجاح وتم تحديث رصيد الحساب', 'success')
         return redirect(url_for('loans.list_loans'))
@@ -155,15 +155,15 @@ def pay_loan(id):
     )
     db.session.add(payment)
 
-    # CRITICAL: Decrease account balance (loan payment is NOT expense)
-    account = Account.query.get(account_id)
-    account.current_balance = float(account.current_balance) - amount
-
     # Decrease remaining amount on loan
     loan.remaining_amount = float(loan.remaining_amount) - amount
     loan.update_status()
 
     db.session.commit()
+
+    # CRITICAL: Recalculate account balance (includes loan payments)
+    account = Account.query.get(account_id)
+    account.update_balance()
 
     flash('تم تسجيل دفعة القرض بنجاح', 'success')
     return redirect(url_for('loans.loan_detail', id=id))
@@ -183,12 +183,14 @@ def delete_loan(id):
     total_payments = sum(float(p.amount) for p in loan.payments.all())
     net_effect = float(loan.amount) - total_payments  # what's still in the account from this loan
 
-    account = Account.query.get(loan.account_id)
-    if account:
-        account.current_balance = float(account.current_balance) - net_effect
-
+    account_id = loan.account_id
     db.session.delete(loan)
     db.session.commit()
+
+    # Recalculate account balance after deleting loan + its payments
+    account = Account.query.get(account_id)
+    if account:
+        account.update_balance()
 
     flash('تم حذف القرض بنجاح', 'success')
     return redirect(url_for('loans.list_loans'))

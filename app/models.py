@@ -66,13 +66,25 @@ class Account(db.Model):
     expense_transactions = db.relationship('ExpenseTransaction', backref='account', lazy='dynamic')
 
     def update_balance(self):
-        """Recalculate current balance based on initial balance and all transactions"""
+        """Recalculate current balance based on initial balance, transactions, loans, and loan payments"""
         total_income = db.session.query(func.sum(IncomeTransaction.amount))\
             .filter(IncomeTransaction.account_id == self.id).scalar() or 0
         total_expenses = db.session.query(func.sum(ExpenseTransaction.amount))\
             .filter(ExpenseTransaction.account_id == self.id).scalar() or 0
 
-        self.current_balance = float(self.initial_balance) + float(total_income) - float(total_expenses)
+        # Loans received into this account (cash IN)
+        total_loans = db.session.query(func.sum(Loan.amount))\
+            .filter(Loan.account_id == self.id).scalar() or 0
+
+        # Loan payments from this account (cash OUT)
+        total_loan_payments = db.session.query(func.sum(LoanPayment.amount))\
+            .filter(LoanPayment.account_id == self.id).scalar() or 0
+
+        self.current_balance = (float(self.initial_balance) 
+                                + float(total_income) 
+                                - float(total_expenses)
+                                + float(total_loans)
+                                - float(total_loan_payments))
         db.session.commit()
 
 
