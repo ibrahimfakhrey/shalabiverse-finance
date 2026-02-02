@@ -29,6 +29,35 @@
                 <input type="number" name="amount" class="form-control" step="0.01" value="{{ transaction.amount }}" required>
             </div>
             <div class="mb-3">
+                <label class="form-label">نوع التكلفة *</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <input type="radio" class="btn-check" name="phase" id="phaseOperating" value="operating" {% if transaction.phase != 'building' %}checked{% endif %}>
+                        <label class="btn btn-outline-success w-100 py-3" for="phaseOperating">
+                            <i class="bi bi-gear-fill"></i><br>
+                            <strong>تشغيل</strong><br>
+                            <small>تدخل في الربح والخسارة</small>
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <input type="radio" class="btn-check" name="phase" id="phaseBuilding" value="building" {% if transaction.phase == 'building' %}checked{% endif %}>
+                        <label class="btn btn-outline-warning w-100 py-3" for="phaseBuilding">
+                            <i class="bi bi-tools"></i><br>
+                            <strong>بناء / تأسيس</strong><br>
+                            <small>استثمار - لا تدخل في P&L</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="is_direct_cost" id="directCost" value="1" {% if transaction.is_direct_cost %}checked{% endif %}>
+                    <label class="form-check-label" for="directCost">
+                        تكلفة مباشرة <small class="text-muted">(مرتبطة بالإنتاج/الخدمة مباشرة)</small>
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label">التاريخ</label>
                 <input type="date" name="transaction_date" class="form-control" value="{{ transaction.transaction_date }}" required>
             </div>

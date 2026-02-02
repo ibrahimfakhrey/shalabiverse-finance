@@ -41,13 +41,18 @@ def add_expense():
             flash('جميع الحقول مطلوبة', 'error')
             return redirect(url_for('expenses.add_expense'))
 
+        phase = request.form.get('phase', 'operating')
+        is_direct_cost = bool(request.form.get('is_direct_cost'))
+
         transaction = ExpenseTransaction(
             account_id=account_id,
             category_id=category_id,
             amount=amount,
             transaction_date=date.fromisoformat(transaction_date_str),
             notes=notes,
-            project_id=project_id
+            project_id=project_id,
+            phase=phase,
+            is_direct_cost=is_direct_cost
         )
 
         db.session.add(transaction)
@@ -91,6 +96,8 @@ def edit_expense(id):
         transaction.amount = request.form.get('amount', type=float)
         transaction.transaction_date = date.fromisoformat(request.form.get('transaction_date'))
         transaction.notes = request.form.get('notes', '').strip()
+        transaction.phase = request.form.get('phase', 'operating')
+        transaction.is_direct_cost = bool(request.form.get('is_direct_cost'))
 
         db.session.commit()
 
