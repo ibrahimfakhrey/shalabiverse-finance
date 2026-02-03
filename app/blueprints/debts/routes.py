@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, session
 from app.blueprints.debts import debts_bp
-from app.models import db, Debt, DebtPayment, Account, Project
+from app.models import db, Debt, DebtPayment, Account, Project, IncomeTransaction, ExpenseTransaction, IncomeCategory, ExpenseCategory
 from datetime import date
 
 
@@ -157,6 +157,47 @@ def record_payment(id):
         debt.remaining_amount = float(debt.remaining_amount) - amount
         debt.update_status()
 
+        # Create income or expense transaction based on debt type
+        if debt.debt_type == 'owed_by_us':
+            # We're paying back → EXPENSE
+            # Find or create "سداد ديون" expense category
+            category = ExpenseCategory.query.filter_by(name_ar='سداد ديون').first()
+            if not category:
+                category = ExpenseCategory(name_ar='سداد ديون', name_en='Debt Repayment')
+                db.session.add(category)
+                db.session.flush()
+            
+            expense = ExpenseTransaction(
+                account_id=account_id,
+                category_id=category.id,
+                amount=amount,
+                transaction_date=payment_date_val,
+                notes=f'سداد دين: {debt.person_name} - {notes}' if notes else f'سداد دين: {debt.person_name}',
+                project_id=project_id,
+                phase='operating',
+                is_direct_cost=False
+            )
+            db.session.add(expense)
+        
+        elif debt.debt_type == 'owed_to_us':
+            # Someone paying us back → INCOME
+            # Find or create "تحصيل ديون" income category
+            category = IncomeCategory.query.filter_by(name_ar='تحصيل ديون').first()
+            if not category:
+                category = IncomeCategory(name_ar='تحصيل ديون', name_en='Debt Collection')
+                db.session.add(category)
+                db.session.flush()
+            
+            income = IncomeTransaction(
+                account_id=account_id,
+                category_id=category.id,
+                amount=amount,
+                transaction_date=payment_date_val,
+                notes=f'تحصيل دين من: {debt.person_name} - {notes}' if notes else f'تحصيل دين من: {debt.person_name}',
+                project_id=project_id
+            )
+            db.session.add(income)
+
         db.session.commit()
 
         # Recalculate balance for the payment account
@@ -166,7 +207,10 @@ def record_payment(id):
         if debt.account_id and debt.account_id != account_id:
             Account.query.get(debt.account_id).update_balance()
 
-        flash('تم تسجيل الدفعة بنجاح وتم تحديث الرصيد', 'success')
+        if debt.debt_type == 'owed_by_us':
+            flash('تم تسجيل الدفعة وإضافتها للمصروفات ✅', 'success')
+        else:
+            flash('تم تسجيل الدفعة وإضافتها للدخل ✅', 'success')
         return redirect(url_for('debts.list_debts'))
 
     accounts = Account.query.filter_by(

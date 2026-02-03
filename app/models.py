@@ -88,19 +88,8 @@ class Account(db.Model):
         total_debts_to_us = db.session.query(func.sum(Debt.original_amount))\
             .filter(Debt.account_id == self.id, Debt.debt_type == 'owed_to_us').scalar() or 0
 
-        # Debt payments on debts BY us = we pay back (cash OUT)
-        debt_payments_by_us = db.session.query(func.sum(DebtPayment.amount))\
-            .join(Debt).filter(
-                DebtPayment.account_id == self.id,
-                Debt.debt_type == 'owed_by_us'
-            ).scalar() or 0
-
-        # Debt payments on debts TO us = they pay us back (cash IN)
-        debt_payments_to_us = db.session.query(func.sum(DebtPayment.amount))\
-            .join(Debt).filter(
-                DebtPayment.account_id == self.id,
-                Debt.debt_type == 'owed_to_us'
-            ).scalar() or 0
+        # NOTE: Debt payments now create income/expense transactions,
+        # so they're already counted in total_income and total_expenses
 
         self.current_balance = (float(self.initial_balance) 
                                 + float(total_income) 
@@ -108,9 +97,7 @@ class Account(db.Model):
                                 + float(total_loans)
                                 - float(total_loan_payments)
                                 + float(total_debts_by_us)
-                                - float(total_debts_to_us)
-                                - float(debt_payments_by_us)
-                                + float(debt_payments_to_us))
+                                - float(total_debts_to_us))
         db.session.commit()
 
 
