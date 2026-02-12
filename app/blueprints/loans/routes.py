@@ -13,6 +13,7 @@ def list_loans():
         return redirect(url_for('main.index'))
 
     status = request.args.get('status', 'all')
+    lender_name = request.args.get('lender', '').strip()
 
     query = Loan.query.filter_by(project_id=project_id)
 
@@ -20,6 +21,9 @@ def list_loans():
         query = query.filter_by(is_paid=False)
     elif status == 'paid':
         query = query.filter_by(is_paid=True)
+
+    if lender_name:
+        query = query.filter(Loan.lender_name.ilike(f'%{lender_name}%'))
 
     loans = query.order_by(Loan.created_at.desc()).all()
 
@@ -32,7 +36,8 @@ def list_loans():
                          total_loans=total_loans,
                          total_remaining=total_remaining,
                          total_paid=total_paid,
-                         status_filter=status)
+                         status_filter=status,
+                         lender_filter=lender_name)
 
 
 @loans_bp.route('/add', methods=['GET', 'POST'])

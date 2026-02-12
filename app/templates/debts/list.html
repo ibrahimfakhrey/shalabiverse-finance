@@ -33,6 +33,47 @@
     </div>
 </div>
 
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('debts.list_debts') }}" class="row g-3 align-items-end">
+            <!-- نوع الدين -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">نوع الدين</label>
+                <select name="type" class="form-select">
+                    <option value="all" {% if debt_type_filter == 'all' %}selected{% endif %}>الكل</option>
+                    <option value="owed_to_us" {% if debt_type_filter == 'owed_to_us' %}selected{% endif %}>ديون لينا</option>
+                    <option value="owed_by_us" {% if debt_type_filter == 'owed_by_us' %}selected{% endif %}>ديون علينا</option>
+                </select>
+            </div>
+            <!-- الحالة -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>الكل</option>
+                    <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>غير مسدد</option>
+                    <option value="partial" {% if status_filter == 'partial' %}selected{% endif %}>جزئي</option>
+                    <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>مسدد</option>
+                </select>
+            </div>
+            <!-- اسم الشخص -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">اسم الشخص</label>
+                <input type="text" name="person" class="form-control" placeholder="بحث بالاسم..." value="{{ person_filter }}">
+            </div>
+            <!-- أزرار -->
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> فلترة
+                </button>
+                <a href="{{ url_for('debts.list_debts') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> مسح
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body">
         {% if debts %}

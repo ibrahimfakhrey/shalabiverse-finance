@@ -43,16 +43,33 @@
 </div>
 
 <!-- Filters -->
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="btn-group" role="group">
-            <a href="{{ url_for('loans.list_loans', status='all') }}"
-               class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">الكل</a>
-            <a href="{{ url_for('loans.list_loans', status='unpaid') }}"
-               class="btn btn-outline-danger {% if status_filter == 'unpaid' %}active{% endif %}">غير مسدد</a>
-            <a href="{{ url_for('loans.list_loans', status='paid') }}"
-               class="btn btn-outline-success {% if status_filter == 'paid' %}active{% endif %}">مسدد</a>
-        </div>
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('loans.list_loans') }}" class="row g-3 align-items-end">
+            <!-- الحالة -->
+            <div class="col-md-4">
+                <label class="form-label fw-bold">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>الكل</option>
+                    <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>غير مسدد</option>
+                    <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>مسدد</option>
+                </select>
+            </div>
+            <!-- اسم المُقرض -->
+            <div class="col-md-4">
+                <label class="form-label fw-bold">اسم المُقرض</label>
+                <input type="text" name="lender" class="form-control" placeholder="بحث بالاسم..." value="{{ lender_filter }}">
+            </div>
+            <!-- أزرار -->
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> فلترة
+                </button>
+                <a href="{{ url_for('loans.list_loans') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> مسح
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 

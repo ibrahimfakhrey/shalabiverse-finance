@@ -14,6 +14,7 @@ def list_debts():
 
     debt_type = request.args.get('type', 'all')
     status = request.args.get('status', 'all')
+    person_name = request.args.get('person', '').strip()
 
     query = Debt.query.filter_by(project_id=project_id)
 
@@ -27,6 +28,9 @@ def list_debts():
     elif status == 'paid':
         query = query.filter_by(payment_status='paid')
 
+    if person_name:
+        query = query.filter(Debt.person_name.ilike(f'%{person_name}%'))
+
     debts = query.order_by(Debt.due_date.asc()).all()
 
     total_owed_to_us = sum(float(d.remaining_amount) for d in debts if d.debt_type == 'owed_to_us' and not d.is_paid)
@@ -37,7 +41,8 @@ def list_debts():
                          total_owed_to_us=total_owed_to_us,
                          total_owed_by_us=total_owed_by_us,
                          debt_type_filter=debt_type,
-                         status_filter=status)
+                         status_filter=status,
+                         person_filter=person_name)
 
 
 @debts_bp.route('/add', methods=['GET', 'POST'])
